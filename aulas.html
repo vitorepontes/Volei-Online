@@ -8,10 +8,6 @@
 </head>
 <body>
 <script>
-    // Guarda de acesso: aulas exigem login. Roda logo no início do body para
-    // redirecionar antes que o conteúdo protegido chegue a aparecer na tela.
-    // (Isto é apenas uma barreira de UX no front-end, não uma proteção de segurança real —
-    // qualquer rota da API continua acessível diretamente. Veja o aviso no README.)
     (function () {
         let usuario = null;
         try { usuario = JSON.parse(localStorage.getItem('usuarioLogado')); } catch {}
