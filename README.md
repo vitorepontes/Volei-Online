@@ -1,5 +1,9 @@
 # 🏐 Vôlei Online — Notícias e Agenda com IA
 
+A documentação inicial do projeto, incluindo informações gerais e o diagrama de casos de uso, está disponível no GitHub Pages:
+
+https://vitorepontes.github.io/Volei-Online/docs/
+
 ## O que a IA faz
 
 A IA (Gemini) opera **nos bastidores**, sem assistente de chat na tela. Ela não inventa conteúdo: busca notícias reais de vôlei num feed RSS (Google News) e usa o Gemini só para resumir/estruturar o que já é real.
