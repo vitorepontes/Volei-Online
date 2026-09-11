@@ -4,63 +4,303 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Vôlei Online - Projeto de Extensão</title>
+
+    <title>Vôlei Online - Documentação</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: Arial, Helvetica, sans-serif;
+            background-color: #0d1728;
+            color: #f5f5f5;
+            line-height: 1.6;
+        }
+
+        header {
+            background-color: #08111f;
+            border-bottom: 2px solid #f5c400;
+            padding: 35px 20px;
+            text-align: center;
+        }
+
+        header h1 {
+            color: #f5c400;
+            font-size: 38px;
+            margin-bottom: 8px;
+        }
+
+        header p {
+            color: #c9d2df;
+        }
+
+        main {
+            width: 90%;
+            max-width: 1100px;
+            margin: 40px auto;
+        }
+
+        section {
+            background-color: #131f33;
+            padding: 28px;
+            margin-bottom: 25px;
+            border-radius: 10px;
+        }
+
+        h2 {
+            color: #f5c400;
+            margin-bottom: 15px;
+        }
+
+        h3 {
+            color: #f5c400;
+            margin-top: 25px;
+            margin-bottom: 10px;
+        }
+
+        p {
+            margin-bottom: 12px;
+        }
+
+        ul {
+            margin-left: 22px;
+            margin-top: 10px;
+        }
+
+        li {
+            margin-bottom: 8px;
+        }
+
+        .diagrama {
+            margin-top: 20px;
+            text-align: center;
+        }
+
+        .diagrama img {
+            width: 100%;
+            max-width: 950px;
+            border-radius: 8px;
+            background-color: white;
+        }
+
+        .legenda {
+            color: #aeb8c7;
+            font-size: 14px;
+            margin-top: 8px;
+        }
+
+        .links a {
+            display: inline-block;
+            margin: 8px 10px 8px 0;
+            padding: 10px 18px;
+            background-color: #f5c400;
+            color: #08111f;
+            text-decoration: none;
+            font-weight: bold;
+            border-radius: 6px;
+        }
+
+        .links a:hover {
+            opacity: 0.85;
+        }
+
+        footer {
+            text-align: center;
+            padding: 25px;
+            background-color: #08111f;
+            color: #aeb8c7;
+            margin-top: 40px;
+        }
+
+        @media (max-width: 700px) {
+            header h1 {
+                font-size: 30px;
+            }
+
+            main {
+                width: 95%;
+            }
+
+            section {
+                padding: 20px;
+            }
+        }
+    </style>
 </head>
 
 <body>
 
-    <h1>Vôlei Online</h1>
+<header>
+    <h1>🏐 Vôlei Online</h1>
+    <p>Um site para aprender, praticar e acompanhar o esporte</p>
+</header>
 
-    <h2>Sobre o projeto</h2>
+<main>
 
-    <p>
-        O Vôlei Online é um site voltado totalmente para o vôlei,
-        reunindo conteúdos para quem deseja aprender, praticar e
-        acompanhar o esporte.
-    </p>
+    <section>
+        <h2>Sobre o Projeto</h2>
 
-    <h2>Objetivo</h2>
+        <p>
+            O Vôlei Online é uma aplicação web desenvolvida como Projeto de Extensão
+            do curso de Engenharia de Software da UniFil.
+        </p>
 
-    <p>
-        O projeto busca reunir em um único lugar vídeos ensinando
-        fundamentos do vôlei, notícias sobre campeonatos e atletas,
-        curiosidades, regras, dicas e treinos separados por nível.
-    </p>
+        <p>
+            A proposta é reunir em um único ambiente conteúdos para pessoas que desejam
+            aprender, praticar ou acompanhar o vôlei, incluindo tanto o vôlei de quadra
+            quanto o vôlei de praia.
+        </p>
+    </section>
 
-    <h2>Principais recursos</h2>
 
-    <ul>
-        <li>Vídeos e tutoriais sobre fundamentos do vôlei</li>
-        <li>Treinos separados por nível</li>
-        <li>Notícias sobre vôlei</li>
-        <li>Agenda de eventos</li>
-        <li>Cadastro e login de usuários</li>
-        <li>Perfil do usuário</li>
-    </ul>
+    <section>
+        <h2>Objetivo</h2>
 
-    <h2>Tecnologias utilizadas</h2>
+        <p>
+            O projeto busca facilitar o acesso a conteúdos relacionados ao vôlei,
+            reunindo aulas em vídeo, notícias, eventos e recursos de interação
+            entre usuários em uma única plataforma.
+        </p>
+    </section>
 
-    <ul>
-        <li>HTML</li>
-        <li>CSS</li>
-        <li>JavaScript</li>
-        <li>Node.js</li>
-    </ul>
 
-    <h2>Diagrama de Casos de Uso</h2>
+    <section>
+        <h2>Principais Funcionalidades</h2>
 
-    <img
-        src="Caso de Uso Extensão.png"
-        alt="Diagrama de Casos de Uso do Vôlei Online"
-        style="max-width: 100%;"
-    >
+        <ul>
+            <li>Aulas em vídeo sobre fundamentos do vôlei;</li>
+            <li>Conteúdos organizados por nível de experiência;</li>
+            <li>Separação entre vôlei de quadra e vôlei de praia;</li>
+            <li>Notícias recentes relacionadas ao esporte;</li>
+            <li>Agenda de campeonatos e eventos;</li>
+            <li>Cadastro e login de usuários;</li>
+            <li>Perfil público e edição de perfil;</li>
+            <li>Recuperação de senha por e-mail;</li>
+            <li>Fórum para interação entre os usuários.</li>
+        </ul>
+    </section>
 
-    <h2>Integrantes</h2>
 
-    <p>
-        Paulo Henrique Farias Lima<br>
-        Vitor Emanoel Pontes Jacinto
-    </p>
+    <section>
+        <h2>Tecnologias Utilizadas</h2>
+
+        <ul>
+            <li>HTML</li>
+            <li>CSS</li>
+            <li>JavaScript</li>
+            <li>Node.js</li>
+            <li>Express</li>
+            <li>PostgreSQL / Neon</li>
+            <li>Google Gemini API</li>
+            <li>Google Notícias RSS</li>
+            <li>Resend</li>
+            <li>GitHub</li>
+            <li>Render</li>
+        </ul>
+    </section>
+
+
+    <section>
+        <h2>Diagramas do Projeto</h2>
+
+        <p>
+            Durante as etapas de desenvolvimento foram criados diagramas para representar
+            os requisitos, a estrutura e a organização inicial do sistema.
+        </p>
+
+        <div class="diagrama">
+            <h3>Diagrama de Casos de Uso</h3>
+
+            <img
+                src="Caso de Uso Extensão.png"
+                alt="Diagrama de Casos de Uso do Vôlei Online"
+            >
+
+            <p class="legenda">
+                Representação dos usuários e das principais funcionalidades previstas para o sistema.
+            </p>
+        </div>
+
+
+        <div class="diagrama">
+            <h3>Diagrama Entidade-Relacionamento (DER)</h3>
+
+            <img
+                src="DER.png"
+                alt="Diagrama Entidade-Relacionamento do Vôlei Online"
+            >
+
+            <p class="legenda">
+                Modelagem inicial das principais entidades e dados do sistema.
+            </p>
+        </div>
+
+
+        <div class="diagrama">
+            <h3>Diagrama de Classes</h3>
+
+            <img
+                src="Diagrama de Classes.png"
+                alt="Diagrama de Classes do Vôlei Online"
+            >
+
+            <p class="legenda">
+                Representação das principais classes planejadas durante a etapa de modelagem.
+            </p>
+        </div>
+    </section>
+
+
+    <section>
+        <h2>Projeto Online</h2>
+
+        <p>
+            O código-fonte e a aplicação podem ser acessados através dos links abaixo:
+        </p>
+
+        <div class="links">
+
+            <a
+                href="https://github.com/vitorepontes/Volei-Online"
+                target="_blank"
+            >
+                Repositório no GitHub
+            </a>
+
+            <a
+                href="https://volei-online.onrender.com"
+                target="_blank"
+            >
+                Acessar Aplicação
+            </a>
+
+        </div>
+    </section>
+
+
+    <section>
+        <h2>Integrantes</h2>
+
+        <p>
+            Paulo Henrique Farias Lima<br>
+            Vitor Emanoel Pontes Jacinto
+        </p>
+
+        <p>
+            Engenharia de Software — UniFil
+        </p>
+    </section>
+
+</main>
+
+
+<footer>
+    Vôlei Online — Projeto de Extensão | 2026
+</footer>
 
 </body>
 
