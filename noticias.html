@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Notícias - Vôlei Online</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header>
+    <h2>Vôlei Online</h2>
+    <button class="nav-toggle" aria-label="Abrir menu" aria-expanded="false" aria-controls="menuPrincipal">
+        <span></span><span></span><span></span>
+    </button>
+    <nav id="menuPrincipal">
+        <a href="index.html">Home</a>
+        <a href="aulas.html">Aulas</a>
+        <a href="noticias.html" class="ativo">Notícias</a>
+        <a href="agenda.html">Agenda</a>
+        <a href="forum.html">Fórum</a>
+        <a href="login.html" class="nav-conta">Login</a>
+    </nav>
+</header>
+
+<h1 class="titulo">Notícias do Vôlei</h1>
+
+<div class="toggle-modalidade" role="tablist" aria-label="Modalidade">
+    <button type="button" class="toggle-opcao ativo" role="tab" aria-selected="true" data-modalidade="">Todas</button>
+    <button type="button" class="toggle-opcao" role="tab" aria-selected="false" data-modalidade="quadra">🏐 Quadra</button>
+    <button type="button" class="toggle-opcao" role="tab" aria-selected="false" data-modalidade="praia">🏖️ Praia</button>
+</div>
+
+<div class="container-noticias" id="container-noticias" aria-live="polite">
+    <div class="estado-vazio"><span class="icone">📡</span>Carregando notícias...</div>
+</div>
+
+<script src="app.js"></script>
+<script>
+let modalidadeAtual = '';
+
+// Imagens de vôlei do Unsplash (conferidas visualmente uma a uma — o array anterior tinha
+// 4 de 6 fotos de outros esportes por engano: basquete, natação e badminton), uma lista por
+// modalidade. Só entram em jogo se a notícia não tiver "imagem" no banco (raro — o servidor
+// já preenche isso) ou se a imagem salva não carregar. Escolha determinística pelo id, igual
+// ao critério usado no servidor, pra mesma notícia sempre cair na mesma imagem.
+const IMAGENS_VOLEI = {
+    quadra: [
+        'https://images.unsplash.com/photo-1547347298-4074fc3086f0?w=600&q=80',
+        'https://images.unsplash.com/photo-1665406857477-e19222ca862c?w=600&q=80',
+        'https://images.unsplash.com/photo-1728971124745-423b12df446d?w=600&q=80',
+        'https://images.unsplash.com/photo-1479859546309-cd77fa21c8f6?w=600&q=80',
+        'https://images.unsplash.com/photo-1666901356149-93f2eb3ba5a2?w=600&q=80',
+        'https://images.unsplash.com/photo-1728971121202-04896f2a35a4?w=600&q=80',
+        'https://images.unsplash.com/photo-1728971124746-607ba6d3fff0?w=600&q=80',
+    ],
+    praia: [
+        'https://images.unsplash.com/photo-1612872087720-bb876e2e67d1?w=600&q=80',
+        'https://images.unsplash.com/photo-1748645288738-aadf398bcd3e?w=600&q=80',
+        'https://images.unsplash.com/photo-1592656094267-764a45160876?w=600&q=80',
+        'https://images.unsplash.com/photo-1521138054413-5a47d349b7af?w=600&q=80',
+        'https://images.unsplash.com/photo-1686753767715-37cb0c34212c?w=600&q=80',
+        'https://images.unsplash.com/photo-1601512986351-9b0e01780eef?w=600&q=80',
+        'https://images.unsplash.com/photo-1746735793884-de62a9203958?w=600&q=80',
+        'https://images.unsplash.com/photo-1754685247131-b232e09922aa?w=600&q=80',
+    ],
+};
+
+function imagemParaNoticia(id, modalidade) {
+    const lista = IMAGENS_VOLEI[modalidade] || IMAGENS_VOLEI.quadra;
+    return lista[id % lista.length];
+}
+
+function formatarData(iso) {
+    if (!iso) return '';
+    return new Date(iso).toLocaleDateString('pt-BR', {day:'2-digit', month:'short', year:'numeric'});
+}
+
+// Escapa texto vindo do banco antes de inserir no HTML (evita quebra de layout/injeção via título ou link)
+function escapeHtml(valor) {
+    return String(valor ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+async function carregarNoticias() {
+    const container = document.getElementById('container-noticias');
+    try {
+        const url = modalidadeAtual ? `/noticias?modalidade=${modalidadeAtual}` : '/noticias';
+        const res = await fetch(url);
+        if (!res.ok) throw new Error();
+        const dados = await res.json();
+        if (!dados.length) {
+            container.innerHTML = `<div class="estado-vazio"><span class="icone">📭</span>Nenhuma notícia ${modalidadeAtual ? `de ${modalidadeAtual}` : ''} ainda.</div>`;
+            return;
+        }
+        container.innerHTML = dados.map(n => {
+            // Usa imagem do banco se houver, senão usa imagem automática de vôlei
+            const imgSrc = n.imagem || imagemParaNoticia(n.id, n.modalidade);
+            const tituloSeguro = escapeHtml(n.titulo);
+            const tituloHtml = n.link ? `<a href="${escapeHtml(n.link)}" target="_blank" rel="noopener noreferrer">${tituloSeguro}</a>` : tituloSeguro;
+            return `
+            <div class="noticia-card" data-id="${n.id}">
+                <img src="${escapeHtml(imgSrc)}" class="noticia-img" alt="${tituloSeguro}"
+                     onerror="this.src='${imagemParaNoticia(n.id, n.modalidade)}'">
+                <div class="noticia-corpo">
+                    <div class="noticia-data">${formatarData(n.criado_em)}</div>
+                    <div class="noticia-titulo">${tituloHtml}</div>
+                    <div class="noticia-texto">${escapeHtml(n.conteudo)}</div>
+                </div>
+            </div>`;
+        }).join('');
+    } catch {
+        container.innerHTML = `<div class="estado-vazio"><span class="icone">⚠️</span>Não foi possível conectar ao servidor.<br><small>Verifique se o backend está rodando.</small></div>`;
+    }
+}
+
+document.querySelectorAll('.toggle-opcao').forEach(botao => {
+    botao.addEventListener('click', () => {
+        if (botao.dataset.modalidade === modalidadeAtual) return;
+        document.querySelectorAll('.toggle-opcao').forEach(b => {
+            b.classList.remove('ativo');
+            b.setAttribute('aria-selected', 'false');
+        });
+        botao.classList.add('ativo');
+        botao.setAttribute('aria-selected', 'true');
+        modalidadeAtual = botao.dataset.modalidade;
+        carregarNoticias();
+    });
+});
+
+setInterval(() => carregarNoticias(), 5 * 60 * 1000);
+carregarNoticias();
+</script>
+</body>
+</html>

@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fórum - Vôlei Online</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<script>
+    // Guarda de acesso: fórum exige login (barreira de UX no front-end, ver aviso no README).
+    (function () {
+        let usuario = null;
+        try { usuario = JSON.parse(localStorage.getItem('usuarioLogado')); } catch {}
+        if (!usuario) location.replace('login.html?motivo=forum');
+    })();
+</script>
+
+<header>
+    <h2>Vôlei Online</h2>
+    <button class="nav-toggle" aria-label="Abrir menu" aria-expanded="false" aria-controls="menuPrincipal">
+        <span></span><span></span><span></span>
+    </button>
+    <nav id="menuPrincipal">
+        <a href="index.html">Home</a>
+        <a href="aulas.html">Aulas</a>
+        <a href="noticias.html">Notícias</a>
+        <a href="agenda.html">Agenda</a>
+        <a href="forum.html" class="ativo">Fórum</a>
+        <a href="login.html" class="nav-conta">Login</a>
+    </nav>
+</header>
+
+<h1 class="titulo">Fórum da Comunidade</h1>
+
+<div class="forum-wrapper">
+    <div class="forum-lista" id="forumLista" aria-live="polite">
+        <div class="estado-vazio"><span class="icone">💬</span>Carregando mensagens...</div>
+    </div>
+
+    <div class="forum-composer">
+        <div id="forumRespondendo" class="forum-respondendo" hidden>
+            <span id="forumRespondendoTexto"></span>
+            <button type="button" class="btn-texto" id="btnCancelarResposta">✕ cancelar</button>
+        </div>
+
+        <div id="msgForum" class="msg" role="alert"></div>
+
+        <form id="formForum">
+            <textarea id="forumTexto" maxlength="500" placeholder="Escreva sua mensagem para a comunidade..." required></textarea>
+            <div class="forum-composer-rodape">
+                <span class="forum-contador" id="forumContador">0 / 500</span>
+                <button type="submit" class="btn btn-primary" id="btnEnviarForum">Enviar</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script src="app.js"></script>
+<script>
+const usuario = JSON.parse(localStorage.getItem('usuarioLogado') || 'null');
+let respondendoA = null; // { id, autor, trecho }
+
+function escapeHtml(valor) {
+    return String(valor ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+function truncar(texto, tamanho) {
+    const t = String(texto ?? '');
+    return t.length > tamanho ? t.slice(0, tamanho) + '…' : t;
+}
+
+function formatarData(iso) {
+    if (!iso) return '';
+    return new Date(iso).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
+}
+
+function mostrarMensagemForum(texto, tipo) {
+    const el = document.getElementById('msgForum');
+    el.textContent = texto;
+    el.className = `msg ${tipo} visivel`;
+    setTimeout(() => el.classList.remove('visivel'), 4000);
+}
+
+function renderizarMensagens(mensagens) {
+    const lista = document.getElementById('forumLista');
+    if (!mensagens.length) {
+        lista.innerHTML = `<div class="estado-vazio"><span class="icone">💬</span>Nenhuma mensagem ainda. Seja a primeira pessoa a postar!</div>`;
+        return;
+    }
+
+    lista.innerHTML = mensagens.map(m => {
+        const citacao = m.resposta_a ? `
+            <div class="forum-citacao">
+                ↩ <strong>@${escapeHtml(m.resposta_autor || '?')}</strong>: "${escapeHtml(truncar(m.resposta_texto || '', 80))}"
+            </div>` : '';
+
+        return `
+        <div class="forum-mensagem" data-id="${m.id}">
+            ${citacao}
+            <div class="forum-cabecalho">
+                <a href="perfil-publico.html?username=${encodeURIComponent(m.autor)}" class="forum-autor">@${escapeHtml(m.autor)}</a>
+                <span class="forum-data">${formatarData(m.criado_em)}</span>
+            </div>
+            <div class="forum-texto">${escapeHtml(m.texto)}</div>
+            <div class="forum-acoes">
+                <button type="button" class="btn-texto" data-responder="${m.id}" data-autor="${escapeHtml(m.autor)}" data-trecho="${escapeHtml(truncar(m.texto, 80))}">Responder</button>
+            </div>
+        </div>`;
+    }).join('');
+}
+
+async function carregarForum(manterScroll = false) {
+    const lista = document.getElementById('forumLista');
+    const estavaNoFim = manterScroll && (window.innerHeight + window.scrollY >= document.body.scrollHeight - 100);
+    try {
+        const res = await fetch('/forum');
+        if (!res.ok) throw new Error();
+        const dados = await res.json();
+        renderizarMensagens(dados);
+        if (!manterScroll || estavaNoFim) {
+            window.scrollTo(0, document.body.scrollHeight);
+        }
+    } catch {
+        lista.innerHTML = `<div class="estado-vazio"><span class="icone">⚠️</span>Não foi possível carregar o fórum.</div>`;
+    }
+}
+
+function definirResposta(id, autor, trecho) {
+    respondendoA = { id, autor, trecho };
+    document.getElementById('forumRespondendoTexto').innerHTML = `Respondendo a <strong>@${escapeHtml(autor)}</strong>: "${escapeHtml(trecho)}"`;
+    document.getElementById('forumRespondendo').hidden = false;
+    document.getElementById('forumTexto').focus();
+}
+
+function cancelarResposta() {
+    respondendoA = null;
+    document.getElementById('forumRespondendo').hidden = true;
+}
+
+document.getElementById('forumLista').addEventListener('click', (e) => {
+    const btn = e.target.closest('[data-responder]');
+    if (!btn) return;
+    definirResposta(Number(btn.dataset.responder), btn.dataset.autor, btn.dataset.trecho);
+});
+
+document.getElementById('btnCancelarResposta').addEventListener('click', cancelarResposta);
+
+const textarea = document.getElementById('forumTexto');
+const contador = document.getElementById('forumContador');
+textarea.addEventListener('input', () => {
+    const tamanho = textarea.value.length;
+    contador.textContent = `${tamanho} / 500`;
+    contador.classList.toggle('limite', tamanho >= 500);
+});
+
+document.getElementById('formForum').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const texto = textarea.value.trim();
+    if (!texto) return;
+
+    const btn = document.getElementById('btnEnviarForum');
+    btn.disabled = true;
+    btn.classList.add('carregando');
+
+    try {
+        const res = await fetch('/forum', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                usuario_id: usuario.id,
+                texto,
+                resposta_a: respondendoA ? respondendoA.id : null
+            })
+        });
+        const dados = await res.json();
+
+        if (res.ok) {
+            textarea.value = '';
+            contador.textContent = '0 / 500';
+            cancelarResposta();
+            await carregarForum();
+            window.scrollTo(0, document.body.scrollHeight);
+        } else {
+            mostrarMensagemForum(dados.erro || 'Não foi possível enviar a mensagem.', 'erro');
+        }
+    } catch {
+        mostrarMensagemForum('❌ Erro ao conectar com o servidor.', 'erro');
+    } finally {
+        btn.disabled = false;
+        btn.classList.remove('carregando');
+    }
+});
+
+setInterval(() => carregarForum(true), 20 * 1000);
+carregarForum();
+</script>
+
+</body>
+</html>

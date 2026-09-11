@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Redefinir senha - Vôlei Online</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header>
+    <h2>Vôlei Online</h2>
+    <button class="nav-toggle" aria-label="Abrir menu" aria-expanded="false" aria-controls="menuPrincipal">
+        <span></span><span></span><span></span>
+    </button>
+    <nav id="menuPrincipal">
+        <a href="index.html">Home</a>
+        <a href="aulas.html">Aulas</a>
+        <a href="noticias.html">Notícias</a>
+        <a href="agenda.html">Agenda</a>
+        <a href="forum.html">Fórum</a>
+        <a href="login.html" class="nav-conta ativo">Login</a>
+    </nav>
+</header>
+
+<div class="auth-wrapper">
+    <div class="auth-box">
+
+        <div class="auth-logo">
+            <h2>🏐 Vôlei Online</h2>
+            <p>Definir nova senha</p>
+        </div>
+
+        <div id="avisoSemToken" class="msg erro" role="alert" hidden>
+            Link de redefinição inválido ou incompleto. Solicite um novo em "Esqueci minha senha".
+        </div>
+
+        <form id="formResetarSenha" class="auth-form ativo" novalidate>
+            <div id="msgResetarSenha" class="msg" role="alert"></div>
+
+            <div class="campo">
+                <label for="novaSenha">Nova senha</label>
+                <input type="password" id="novaSenha" placeholder="Mínimo 6 caracteres" autocomplete="new-password" minlength="6" required>
+            </div>
+
+            <div class="campo">
+                <label for="confirmarSenha">Confirmar nova senha</label>
+                <input type="password" id="confirmarSenha" placeholder="Repita a nova senha" autocomplete="new-password" minlength="6" required>
+            </div>
+
+            <button type="submit" class="btn btn-primary" id="btnRedefinir">Redefinir senha</button>
+        </form>
+
+        <div class="voltar-home">
+            <a href="login.html">← Voltar para o login</a>
+        </div>
+
+    </div>
+</div>
+
+<script src="app.js"></script>
+<script>
+const token = new URLSearchParams(location.search).get('token');
+
+function mostrarMensagem(texto, tipo) {
+    const el = document.getElementById('msgResetarSenha');
+    el.textContent = texto;
+    el.className = `msg ${tipo} visivel`;
+}
+
+if (!token) {
+    // Remove 'ativo' (não só `hidden`): a classe força display:flex via CSS e por si só
+    // já anula o atributo hidden do navegador — mesma causa do bug do aviso abaixo.
+    document.getElementById('formResetarSenha').classList.remove('ativo');
+    document.getElementById('formResetarSenha').hidden = true;
+    const aviso = document.getElementById('avisoSemToken');
+    aviso.hidden = false;
+    aviso.classList.add('visivel');
+}
+
+document.getElementById('formResetarSenha').addEventListener('submit', async (e) => {
+    e.preventDefault();
+
+    const novaSenha = document.getElementById('novaSenha').value;
+    const confirmarSenha = document.getElementById('confirmarSenha').value;
+
+    if (novaSenha !== confirmarSenha) {
+        mostrarMensagem('As senhas não coincidem.', 'erro');
+        return;
+    }
+
+    const btn = document.getElementById('btnRedefinir');
+    btn.disabled = true;
+    btn.classList.add('carregando');
+    btn.textContent = 'Redefinindo...';
+
+    try {
+        const res = await fetch('/resetar-senha', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ token, novaSenha })
+        });
+        const dados = await res.json();
+
+        if (res.ok) {
+            mostrarMensagem('✅ ' + dados.mensagem, 'sucesso');
+            document.getElementById('formResetarSenha').reset();
+            setTimeout(() => { location.href = 'login.html'; }, 2000);
+        } else {
+            mostrarMensagem(dados.erro || 'Não foi possível redefinir a senha.', 'erro');
+        }
+    } catch {
+        mostrarMensagem('❌ Erro ao conectar com o servidor.', 'erro');
+    } finally {
+        btn.disabled = false;
+        btn.classList.remove('carregando');
+        btn.textContent = 'Redefinir senha';
+    }
+});
+</script>
+
+</body>
+</html>

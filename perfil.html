@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Meu Perfil - Vôlei Online</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<script>
+    // Guarda de acesso: perfil exige login (barreira de UX no front-end, ver aviso no README).
+    (function () {
+        let usuario = null;
+        try { usuario = JSON.parse(localStorage.getItem('usuarioLogado')); } catch {}
+        if (!usuario) location.replace('login.html?motivo=perfil');
+    })();
+</script>
+
+<header>
+    <h2>Vôlei Online</h2>
+    <button class="nav-toggle" aria-label="Abrir menu" aria-expanded="false" aria-controls="menuPrincipal">
+        <span></span><span></span><span></span>
+    </button>
+    <nav id="menuPrincipal">
+        <a href="index.html">Home</a>
+        <a href="aulas.html">Aulas</a>
+        <a href="noticias.html">Notícias</a>
+        <a href="agenda.html">Agenda</a>
+        <a href="forum.html">Fórum</a>
+        <a href="login.html" class="nav-conta ativo">Login</a>
+    </nav>
+</header>
+
+<h1 class="titulo">Meu Perfil</h1>
+
+<div class="perfil-wrapper">
+    <section class="perfil-card">
+        <div class="avatar" id="avatarLetra" aria-hidden="true">?</div>
+        <h2 id="perfilUsername">@usuario</h2>
+
+        <form id="formPerfil">
+            <div id="msgPerfil" class="msg" role="alert"></div>
+
+            <div class="campo">
+                <label for="username">Nome de usuário</label>
+                <input type="text" id="username" pattern="[a-zA-Z0-9_.]{3,20}"
+                    title="3 a 20 caracteres: letras, números, ponto ou underline, sem espaços" required>
+                <small>Seu identificador público (usado no fórum). Seu nome completo não é exibido a outras pessoas.</small>
+            </div>
+
+            <div class="campo">
+                <label for="bio">Bio</label>
+                <textarea id="bio" rows="3" placeholder="Conte um pouco sobre você no vôlei"></textarea>
+            </div>
+
+            <div class="campo">
+                <label for="timeJogo">Time que joga</label>
+                <input type="text" id="timeJogo" placeholder="ex: Vôlei do Bairro">
+            </div>
+
+            <div class="campo">
+                <label for="posicaoPreferida">Posição preferida</label>
+                <select id="posicaoPreferida">
+                    <option value="">Não informado</option>
+                    <option value="Levantador(a)">Levantador(a)</option>
+                    <option value="Ponteiro(a)">Ponteiro(a)</option>
+                    <option value="Oposto(a)">Oposto(a)</option>
+                    <option value="Central">Central</option>
+                    <option value="Líbero">Líbero</option>
+                </select>
+            </div>
+
+            <div class="campo">
+                <label for="nivel">Nível no vôlei</label>
+                <select id="nivel">
+                    <option value="Iniciante">🟢 Iniciante</option>
+                    <option value="Intermediário">🟡 Intermediário</option>
+                    <option value="Avançado">🔴 Avançado</option>
+                </select>
+            </div>
+
+            <button type="submit" class="btn btn-primary btn-block" id="btnSalvarPerfil">Salvar alterações</button>
+        </form>
+    </section>
+
+    <section class="perfil-card">
+        <h2>Dados da conta</h2>
+
+        <div class="campo campo-leitura">
+            <label>E-mail</label>
+            <p id="perfilEmail" class="email-usuario"></p>
+        </div>
+
+        <a href="esqueci-senha.html" class="btn btn-primary btn-block">Alterar senha</a>
+        <button type="button" class="btn btn-outline-danger btn-block" id="btnLogout">Sair da conta</button>
+    </section>
+</div>
+
+<script src="app.js"></script>
+<script>
+const usuario = JSON.parse(localStorage.getItem('usuarioLogado') || 'null');
+
+function mostrarMensagemPerfil(texto, tipo) {
+    const el = document.getElementById('msgPerfil');
+    el.textContent = texto;
+    el.className = `msg ${tipo} visivel`;
+    setTimeout(() => el.classList.remove('visivel'), 4000);
+}
+
+function preencherFormulario() {
+    document.getElementById('perfilUsername').textContent = `@${usuario.username}`;
+    document.getElementById('avatarLetra').textContent = usuario.username.charAt(0).toUpperCase();
+    document.getElementById('perfilEmail').textContent = usuario.email;
+
+    document.getElementById('username').value = usuario.username || '';
+    document.getElementById('bio').value = usuario.bio || '';
+    document.getElementById('timeJogo').value = usuario.time_jogo || '';
+    document.getElementById('posicaoPreferida').value = usuario.posicao_preferida || '';
+    document.getElementById('nivel').value = usuario.nivel || 'Iniciante';
+}
+
+document.getElementById('formPerfil').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const btn = document.getElementById('btnSalvarPerfil');
+    btn.disabled = true;
+    btn.classList.add('carregando');
+
+    const corpo = {
+        username: document.getElementById('username').value.trim(),
+        bio: document.getElementById('bio').value || null,
+        time_jogo: document.getElementById('timeJogo').value || null,
+        posicao_preferida: document.getElementById('posicaoPreferida').value || null,
+        nivel: document.getElementById('nivel').value
+    };
+
+    try {
+        const res = await fetch(`/usuarios/${usuario.id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(corpo)
+        });
+        const dados = await res.json();
+
+        if (res.ok) {
+            Object.assign(usuario, dados.usuario);
+            localStorage.setItem('usuarioLogado', JSON.stringify(usuario));
+            document.getElementById('perfilUsername').textContent = `@${usuario.username}`;
+            document.getElementById('avatarLetra').textContent = usuario.username.charAt(0).toUpperCase();
+            mostrarMensagemPerfil('✅ Perfil atualizado!', 'sucesso');
+        } else {
+            mostrarMensagemPerfil(dados.erro || 'Não foi possível salvar.', 'erro');
+        }
+    } catch {
+        mostrarMensagemPerfil('❌ Erro ao conectar com o servidor.', 'erro');
+    } finally {
+        btn.disabled = false;
+        btn.classList.remove('carregando');
+    }
+});
+
+document.getElementById('btnLogout').addEventListener('click', () => {
+    localStorage.removeItem('usuarioLogado');
+    location.href = 'index.html';
+});
+
+if (usuario) preencherFormulario();
+</script>
+
+</body>
+</html>

@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Perfil - Vôlei Online</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header>
+    <h2>Vôlei Online</h2>
+    <button class="nav-toggle" aria-label="Abrir menu" aria-expanded="false" aria-controls="menuPrincipal">
+        <span></span><span></span><span></span>
+    </button>
+    <nav id="menuPrincipal">
+        <a href="index.html">Home</a>
+        <a href="aulas.html">Aulas</a>
+        <a href="noticias.html">Notícias</a>
+        <a href="agenda.html">Agenda</a>
+        <a href="forum.html">Fórum</a>
+        <a href="login.html" class="nav-conta">Login</a>
+    </nav>
+</header>
+
+<h1 class="titulo">Perfil</h1>
+
+<div class="perfil-wrapper">
+    <section class="perfil-card" id="perfilConteudo">
+        <div class="estado-vazio"><span class="icone">👤</span>Carregando perfil...</div>
+    </section>
+</div>
+
+<script src="app.js"></script>
+<script>
+function escapeHtml(valor) {
+    return String(valor ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+async function carregarPerfilPublico() {
+    const container = document.getElementById('perfilConteudo');
+    const username = new URLSearchParams(location.search).get('username');
+
+    if (!username) {
+        container.innerHTML = `<div class="estado-vazio"><span class="icone">⚠️</span>Nenhum usuário informado.</div>`;
+        return;
+    }
+
+    try {
+        const res = await fetch(`/usuarios/publico/${encodeURIComponent(username)}`);
+        if (res.status === 404) {
+            container.innerHTML = `<div class="estado-vazio"><span class="icone">🔎</span>Usuário "@${escapeHtml(username)}" não encontrado.</div>`;
+            return;
+        }
+        if (!res.ok) throw new Error();
+        const perfil = await res.json();
+
+        const meuUsuario = usuarioLogado();
+        const ehProprioPerfil = meuUsuario && meuUsuario.username === perfil.username;
+
+        container.innerHTML = `
+            <div class="avatar" aria-hidden="true">${escapeHtml(perfil.username.charAt(0).toUpperCase())}</div>
+            <h2>@${escapeHtml(perfil.username)}</h2>
+            <span class="badge-nivel">${escapeHtml(perfil.nivel || 'Iniciante')}</span>
+
+            <div class="campo campo-leitura">
+                <label>Bio</label>
+                <p>${perfil.bio ? escapeHtml(perfil.bio) : 'Sem bio.'}</p>
+            </div>
+
+            <div class="campo campo-leitura">
+                <label>Time que joga</label>
+                <p>${perfil.time_jogo ? escapeHtml(perfil.time_jogo) : 'Não informado.'}</p>
+            </div>
+
+            <div class="campo campo-leitura">
+                <label>Posição preferida</label>
+                <p>${perfil.posicao_preferida ? escapeHtml(perfil.posicao_preferida) : 'Não informado.'}</p>
+            </div>
+
+            ${ehProprioPerfil ? `<div class="msg sucesso visivel">Este é o seu perfil.</div>` : ''}
+        `;
+    } catch {
+        container.innerHTML = `<div class="estado-vazio"><span class="icone">⚠️</span>Não foi possível carregar o perfil.</div>`;
+    }
+}
+
+carregarPerfilPublico();
+</script>
+
+</body>
+</html>

@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login / Cadastro - Vôlei Online</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header>
+    <h2>Vôlei Online</h2>
+    <button class="nav-toggle" aria-label="Abrir menu" aria-expanded="false" aria-controls="menuPrincipal">
+        <span></span><span></span><span></span>
+    </button>
+    <nav id="menuPrincipal">
+        <a href="index.html">Home</a>
+        <a href="aulas.html">Aulas</a>
+        <a href="noticias.html">Notícias</a>
+        <a href="agenda.html">Agenda</a>
+        <a href="forum.html">Fórum</a>
+        <a href="login.html" class="nav-conta ativo">Login</a>
+    </nav>
+</header>
+
+<div class="auth-wrapper">
+    <div class="auth-box">
+
+        <div class="auth-logo">
+            <h2>🏐 Vôlei Online</h2>
+            <p>Acesse sua conta ou crie uma nova</p>
+        </div>
+
+        <div id="avisoAcesso" class="msg" role="status"></div>
+
+        <!-- PAINEL SE JÁ LOGADO -->
+        <div class="painel-usuario" id="painelUsuario">
+            <div class="avatar" id="avatarLetra" aria-hidden="true">?</div>
+            <h3 id="nomeUsuario">Usuário</h3>
+            <span class="badge-nivel" id="nivelUsuario">Iniciante</span>
+            <p class="email-usuario" id="emailUsuario"></p>
+            <a href="index.html" class="btn btn-primary btn-block">Ir para a Home</a>
+            <button type="button" class="btn btn-outline-danger btn-block" onclick="sair()">Sair da conta</button>
+        </div>
+
+        <!-- FORMULÁRIOS -->
+        <div id="areaForms">
+            <div class="auth-tabs" role="tablist">
+                <button type="button" class="auth-tab ativo" role="tab" aria-selected="true" aria-controls="formLogin" onclick="trocarAba('login')">Entrar</button>
+                <button type="button" class="auth-tab" role="tab" aria-selected="false" aria-controls="formCadastro" onclick="trocarAba('cadastro')">Cadastrar</button>
+            </div>
+
+            <!-- FORM LOGIN -->
+            <form class="auth-form ativo" id="formLogin" onsubmit="fazerLogin(event)" novalidate>
+                <div id="msgLogin" class="msg" role="alert"></div>
+
+                <div class="campo">
+                    <label for="loginEmail">E-mail</label>
+                    <input type="email" id="loginEmail" placeholder="seu@email.com" autocomplete="email" required>
+                </div>
+
+                <div class="campo">
+                    <label for="loginSenha">Senha</label>
+                    <input type="password" id="loginSenha" placeholder="Sua senha" autocomplete="current-password" required>
+                </div>
+
+                <button type="submit" class="btn btn-primary" id="btnLogin">Entrar</button>
+
+                <div class="voltar-home">
+                    <a href="esqueci-senha.html">Esqueceu a senha?</a>
+                </div>
+            </form>
+
+            <!-- FORM CADASTRO -->
+            <form class="auth-form" id="formCadastro" onsubmit="fazerCadastro(event)" novalidate>
+                <div id="msgCadastro" class="msg" role="alert"></div>
+
+                <div class="campo">
+                    <label for="cadNome">Nome completo</label>
+                    <input type="text" id="cadNome" placeholder="Seu nome" autocomplete="name" required>
+                </div>
+
+                <div class="campo">
+                    <label for="cadUsername">Nome de usuário</label>
+                    <input type="text" id="cadUsername" placeholder="ex: joao.silva" autocomplete="username"
+                        pattern="[a-zA-Z0-9_.]{3,20}" title="3 a 20 caracteres: letras, números, ponto ou underline, sem espaços" required>
+                    <small>Esse é o seu identificador público (usado no fórum). Seu nome completo não é exibido.</small>
+                </div>
+
+                <div class="campo">
+                    <label for="cadEmail">E-mail</label>
+                    <input type="email" id="cadEmail" placeholder="seu@email.com" autocomplete="email" required>
+                </div>
+
+                <div class="campo">
+                    <label for="cadSenha">Senha</label>
+                    <input type="password" id="cadSenha" placeholder="Mínimo 6 caracteres" autocomplete="new-password" minlength="6" required>
+                    <small>Use ao menos 6 caracteres.</small>
+                </div>
+
+                <div class="campo">
+                    <label for="cadNivel">Nível no Vôlei</label>
+                    <select id="cadNivel">
+                        <option value="Iniciante">🟢 Iniciante</option>
+                        <option value="Intermediário">🟡 Intermediário</option>
+                        <option value="Avançado">🔴 Avançado</option>
+                    </select>
+                </div>
+
+                <button type="submit" class="btn btn-primary" id="btnCadastro">Criar conta</button>
+            </form>
+        </div>
+
+        <div class="voltar-home">
+            <a href="index.html">← Voltar para a página inicial</a>
+        </div>
+
+    </div>
+</div>
+
+<script src="app.js"></script>
+<script>
+    const MOTIVOS_REDIRECIONAMENTO = {
+        aulas: 'Faça login para acessar as aulas.',
+        perfil: 'Faça login para acessar seu perfil.',
+        forum: 'Faça login para acessar o fórum.'
+    };
+
+    // Verifica se já está logado
+    window.addEventListener('DOMContentLoaded', () => {
+        const usuario = JSON.parse(localStorage.getItem('usuarioLogado'));
+        if (usuario) {
+            mostrarPainel(usuario);
+            return;
+        }
+
+        const motivo = new URLSearchParams(location.search).get('motivo');
+        if (motivo && MOTIVOS_REDIRECIONAMENTO[motivo]) {
+            const aviso = document.getElementById('avisoAcesso');
+            aviso.textContent = MOTIVOS_REDIRECIONAMENTO[motivo];
+            aviso.classList.add('erro', 'visivel');
+        }
+    });
+
+    function trocarAba(aba) {
+        document.querySelectorAll('.auth-tab').forEach(t => {
+            t.classList.remove('ativo');
+            t.setAttribute('aria-selected', 'false');
+        });
+        document.querySelectorAll('.auth-form').forEach(f => f.classList.remove('ativo'));
+
+        const tabs = document.querySelectorAll('.auth-tab');
+        if (aba === 'login') {
+            tabs[0].classList.add('ativo');
+            tabs[0].setAttribute('aria-selected', 'true');
+            document.getElementById('formLogin').classList.add('ativo');
+        } else {
+            tabs[1].classList.add('ativo');
+            tabs[1].setAttribute('aria-selected', 'true');
+            document.getElementById('formCadastro').classList.add('ativo');
+        }
+    }
+
+    function mostrarMensagem(id, texto, tipo) {
+        const el = document.getElementById(id);
+        el.textContent = texto;
+        el.className = `msg ${tipo} visivel`;
+        setTimeout(() => el.classList.remove('visivel'), 4000);
+    }
+
+    async function fazerLogin(e) {
+        e.preventDefault();
+        const btn = document.getElementById('btnLogin');
+        btn.textContent = 'Entrando...';
+        btn.classList.add('carregando');
+
+        const email = document.getElementById('loginEmail').value;
+        const senha = document.getElementById('loginSenha').value;
+
+        try {
+            const res = await fetch('/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email, senha })
+            });
+            const dados = await res.json();
+
+            if (res.ok) {
+                localStorage.setItem('usuarioLogado', JSON.stringify(dados.usuario));
+                mostrarMensagem('msgLogin', '✅ Login realizado com sucesso!', 'sucesso');
+                setTimeout(() => { location.href = 'index.html'; }, 800);
+            } else {
+                mostrarMensagem('msgLogin', dados.erro || 'E-mail ou senha inválidos.', 'erro');
+            }
+        } catch {
+            mostrarMensagem('msgLogin', '❌ Erro ao conectar com o servidor.', 'erro');
+        } finally {
+            btn.textContent = 'Entrar';
+            btn.classList.remove('carregando');
+        }
+    }
+
+    async function fazerCadastro(e) {
+        e.preventDefault();
+        const btn = document.getElementById('btnCadastro');
+        btn.textContent = 'Criando conta...';
+        btn.classList.add('carregando');
+
+        const nome     = document.getElementById('cadNome').value;
+        const username = document.getElementById('cadUsername').value.trim();
+        const email    = document.getElementById('cadEmail').value;
+        const senha    = document.getElementById('cadSenha').value;
+        const nivel    = document.getElementById('cadNivel').value;
+
+        try {
+            const res = await fetch('/cadastro', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ nome, username, email, senha, nivel })
+            });
+            const dados = await res.json();
+
+            if (res.ok) {
+                localStorage.setItem('usuarioLogado', JSON.stringify(dados.usuario));
+                mostrarMensagem('msgCadastro', '✅ Conta criada com sucesso!', 'sucesso');
+                setTimeout(() => { location.href = 'index.html'; }, 800);
+            } else {
+                mostrarMensagem('msgCadastro', dados.erro || 'Erro ao criar conta.', 'erro');
+            }
+        } catch {
+            mostrarMensagem('msgCadastro', '❌ Erro ao conectar com o servidor.', 'erro');
+        } finally {
+            btn.textContent = 'Criar conta';
+            btn.classList.remove('carregando');
+        }
+    }
+
+    function mostrarPainel(usuario) {
+        document.getElementById('areaForms').style.display = 'none';
+        const painel = document.getElementById('painelUsuario');
+        painel.classList.add('ativo');
+        document.getElementById('nomeUsuario').textContent = usuario.nome;
+        document.getElementById('emailUsuario').textContent = usuario.email;
+        document.getElementById('nivelUsuario').textContent = usuario.nivel;
+        document.getElementById('avatarLetra').textContent = usuario.nome.charAt(0).toUpperCase();
+    }
+
+    function sair() {
+        localStorage.removeItem('usuarioLogado');
+        location.reload();
+    }
+</script>
+
+</body>
+</html>

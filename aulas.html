@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aulas - Vôlei Online</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<script>
+    // Guarda de acesso: aulas exigem login. Roda logo no início do body para
+    // redirecionar antes que o conteúdo protegido chegue a aparecer na tela.
+    // (Isto é apenas uma barreira de UX no front-end, não uma proteção de segurança real —
+    // qualquer rota da API continua acessível diretamente. Veja o aviso no README.)
+    (function () {
+        let usuario = null;
+        try { usuario = JSON.parse(localStorage.getItem('usuarioLogado')); } catch {}
+        if (!usuario) location.replace('login.html?motivo=aulas');
+    })();
+</script>
+
+<header>
+    <h2>Vôlei Online</h2>
+    <button class="nav-toggle" aria-label="Abrir menu" aria-expanded="false" aria-controls="menuPrincipal">
+        <span></span><span></span><span></span>
+    </button>
+    <nav id="menuPrincipal">
+        <a href="index.html">Home</a>
+        <a href="aulas.html" class="ativo">Aulas</a>
+        <a href="noticias.html">Notícias</a>
+        <a href="agenda.html">Agenda</a>
+        <a href="forum.html">Fórum</a>
+        <a href="login.html" class="nav-conta">Login</a>
+    </nav>
+</header>
+
+<h1 class="titulo">Aulas e Fundamentos</h1>
+
+<div class="toggle-modalidade" role="tablist" aria-label="Modalidade">
+    <button type="button" class="toggle-opcao ativo" role="tab" aria-selected="true" data-modalidade="quadra">🏐 Quadra</button>
+    <button type="button" class="toggle-opcao" role="tab" aria-selected="false" data-modalidade="praia">🏖️ Praia</button>
+</div>
+
+<div class="container-aulas">
+
+    <div class="menu-lateral" id="menuAulas">
+        <div id="menuAulasLista">
+            <div class="estado-vazio"><span class="icone">🏐</span>Carregando aulas...</div>
+        </div>
+    </div>
+
+    <div class="video-area">
+        <iframe id="videoPlayer"
+            title="Selecione uma aula"
+            src=""
+            allowfullscreen>
+        </iframe>
+    </div>
+
+</div>
+
+<script src="app.js"></script>
+<script>
+const ORDEM_NIVEIS = ['Iniciante', 'Intermediário', 'Avançado'];
+const ORDEM_FUNDAMENTOS = ['Saque', 'Manchete', 'Toque', 'Levantamento', 'Bloqueio', 'Ataque', 'Geral'];
+const ROTULOS_NIVEL = { Iniciante: '🟢 Iniciante', Intermediário: '🟡 Intermediário', Avançado: '🔴 Avançado' };
+let modalidadeAtual = 'quadra';
+
+function escapeHtml(valor) {
+    return String(valor ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+const IDS_FUNDAMENTO = { Saque: 'saque', Manchete: 'manchete', Toque: 'toque', Levantamento: 'levantamento', Bloqueio: 'bloqueio', Ataque: 'ataque', Geral: 'geral' };
+
+function idFundamento(fundamento) {
+    return `fund-${IDS_FUNDAMENTO[fundamento] || 'outro'}`;
+}
+
+function renderizarMenu(aulas) {
+    const menu = document.getElementById('menuAulasLista');
+
+    if (!aulas.length) {
+        menu.innerHTML = `<div class="estado-vazio"><span class="icone">📭</span>Nenhuma aula cadastrada para esta modalidade ainda.</div>`;
+        document.getElementById('videoPlayer').src = '';
+        document.getElementById('videoPlayer').title = 'Selecione uma aula';
+        return;
+    }
+
+    // Agrupa por fundamento (aulas antigas sem fundamento caem em "Geral")
+    const porFundamento = {};
+    aulas.forEach(a => { (porFundamento[a.fundamento || 'Geral'] ||= []).push(a); });
+
+    menu.innerHTML = ORDEM_FUNDAMENTOS.filter(f => porFundamento[f]).map((fundamento, idx) => {
+        const idSubmenu = idFundamento(fundamento);
+
+        // Dentro do fundamento, agrupa por nível
+        const porNivel = {};
+        porFundamento[fundamento].forEach(a => { (porNivel[a.nivel] ||= []).push(a); });
+
+        const nivelHtml = ORDEM_NIVEIS.filter(nivel => porNivel[nivel]).map(nivel => `
+            <div class="nivel-grupo">
+                <span class="nivel-rotulo">${ROTULOS_NIVEL[nivel] || escapeHtml(nivel)}</span>
+                ${porNivel[nivel].map(a => `
+                    <button class="video-link"
+                        data-titulo="${escapeHtml(a.titulo)}"
+                        data-video="${escapeHtml(a.url_video)}">${escapeHtml(a.titulo)}</button>
+                `).join('')}
+            </div>
+        `).join('');
+
+        return `
+            <button class="categoria" aria-expanded="${idx === 0}" aria-controls="${idSubmenu}">
+                ${escapeHtml(fundamento)} <span class="seta">▼</span>
+            </button>
+            <div id="${idSubmenu}" class="submenu${idx === 0 ? ' aberto' : ''}">
+                ${nivelHtml}
+            </div>
+        `;
+    }).join('');
+
+    const primeiroVideo = menu.querySelector('.video-link');
+    if (primeiroVideo) selecionarAula(primeiroVideo);
+}
+
+async function carregarAulas() {
+    const menu = document.getElementById('menuAulasLista');
+    menu.innerHTML = `<div class="estado-vazio"><span class="icone">🏐</span>Carregando aulas...</div>`;
+    try {
+        const res = await fetch(`/aulas?modalidade=${modalidadeAtual}`);
+        if (!res.ok) throw new Error();
+        const dados = await res.json();
+        renderizarMenu(dados);
+    } catch {
+        menu.innerHTML = `<div class="estado-vazio"><span class="icone">⚠️</span>Não foi possível carregar as aulas.</div>`;
+    }
+}
+
+function selecionarAula(botao) {
+    document.querySelectorAll('#menuAulasLista .video-link.ativo').forEach(b => b.classList.remove('ativo'));
+    botao.classList.add('ativo');
+
+    const player = document.getElementById('videoPlayer');
+    player.src = botao.dataset.video;
+    player.title = `Vídeo da aula: ${botao.dataset.titulo}`;
+}
+
+document.getElementById('menuAulas').addEventListener('click', (e) => {
+    const categoria = e.target.closest('.categoria');
+    if (categoria) {
+        const submenu = document.getElementById(categoria.getAttribute('aria-controls'));
+        const aberto = submenu.classList.toggle('aberto');
+        categoria.setAttribute('aria-expanded', String(aberto));
+        return;
+    }
+
+    const videoBtn = e.target.closest('.video-link');
+    if (videoBtn) selecionarAula(videoBtn);
+});
+
+document.querySelectorAll('.toggle-opcao').forEach(botao => {
+    botao.addEventListener('click', () => {
+        if (botao.dataset.modalidade === modalidadeAtual) return;
+        document.querySelectorAll('.toggle-opcao').forEach(b => {
+            b.classList.remove('ativo');
+            b.setAttribute('aria-selected', 'false');
+        });
+        botao.classList.add('ativo');
+        botao.setAttribute('aria-selected', 'true');
+        modalidadeAtual = botao.dataset.modalidade;
+        carregarAulas();
+    });
+});
+
+carregarAulas();
+</script>
+
+</body>
+</html>
