@@ -34,8 +34,6 @@ const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KE
 
 const USERNAME_REGEX = /^[a-zA-Z0-9_.]{3,20}$/;
 
-// Gera um username a partir do e-mail (parte antes do @) para contas antigas que
-// não tinham essa coluna, garantindo unicidade com sufixo numérico se preciso.
 async function backfillUsernames() {
   const { rows: semUsername } = await db.query("SELECT id, email FROM usuarios WHERE username IS NULL");
   if (!semUsername.length) return;
@@ -58,9 +56,6 @@ async function backfillUsernames() {
   console.log(`👤 Backfill de username aplicado a ${semUsername.length} usuário(s).`);
 }
 
-// ─────────────────────────────────────────────────────────
-// INICIALIZAR TABELAS
-// ─────────────────────────────────────────────────────────
 async function inicializarBanco() {
   await db.query(`
     CREATE TABLE IF NOT EXISTS usuarios (
@@ -121,8 +116,6 @@ async function inicializarBanco() {
       UNIQUE (usuario_id, aula_id)
     )
   `);
-  // Nota: "progresso" não é mais usada pelo front-end (nível agora é editável livremente
-  // pelo usuário em vez de avançar automaticamente). Mantida no banco por decisão explícita.
 
   await db.query(`
     CREATE TABLE IF NOT EXISTS senha_resets (
@@ -145,7 +138,7 @@ async function inicializarBanco() {
     )
   `);
 
-  // Colunas novas em tabelas existentes (idempotente — não quebra bancos já criados)
+
   await db.query(`ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS posicao_preferida TEXT`);
   await db.query(`ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS username TEXT`);
   await db.query(`ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS bio TEXT`);
@@ -154,10 +147,6 @@ async function inicializarBanco() {
   await db.query(`ALTER TABLE agenda ADD COLUMN IF NOT EXISTS modalidade TEXT`);
   await db.query(`ALTER TABLE agenda ADD COLUMN IF NOT EXISTS data_evento DATE`);
 
-  // Constraint de unicidade em username (Postgres não suporta "ADD CONSTRAINT IF NOT EXISTS",
-  // então checamos antes se ela já existe em vez de tentar criar e ignorar o erro — a colisão
-  // pode aparecer tanto como "constraint already exists" (42710) quanto, por causa do índice
-  // implícito com o mesmo nome, como "relation already exists" (42P07))
   const { rows: constraintExiste } = await db.query(
     `SELECT 1 FROM pg_constraint WHERE conname = 'usuarios_username_key'`
   );
@@ -194,12 +183,6 @@ async function inicializarBanco() {
     console.log("📰 Notícias iniciais inseridas.");
   }
 
-  // Corrige notícias antigas: as mais antigas (antes da separação quadra/praia) nunca tiveram
-  // "modalidade" preenchida — todas são sobre vôlei de quadra (Superliga/Sul-Americano) pelo
-  // título, então preenchemos isso. Também redistribui a imagem de fallback entre as notícias
-  // que não têm foto própria (ou que caíram todas no mesmo fallback repetido antes desta
-  // correção), escolhendo de forma determinística pelo id. Sem guarda de "só uma vez": a
-  // escolha é uma função pura, então rodar de novo sempre dá o mesmo resultado.
   await db.query("UPDATE noticias SET modalidade='quadra' WHERE modalidade IS NULL");
   const todosFallbacks = [...IMAGEM_FALLBACK.quadra, ...IMAGEM_FALLBACK.praia];
   const { rows: semImagemPropria } = await db.query(
@@ -211,15 +194,13 @@ async function inicializarBanco() {
     await db.query("UPDATE noticias SET imagem=$1 WHERE id=$2", [imagemFallback, n.id]);
   }
 
-  // Eventos: os do seed original ficaram todos vencidos (datas de MAI-AGO já passadas) e sem
-  // modalidade. Substituímos por eventos reais e confirmados (Sul-Americano de Vôlei 2026,
-  // CBV) — roda uma vez, de forma idempotente (guarda pelo título do primeiro evento novo).
+
   const TITULO_EVENTO_SEED = "Sul-Americano de Vôlei Feminino 2026";
   const { rows: reventoExiste } = await db.query("SELECT 1 FROM agenda WHERE titulo=$1", [TITULO_EVENTO_SEED]);
   if (!reventoExiste.length) {
     await db.query("DELETE FROM agenda WHERE data_evento IS NULL");
     const eventosIniciais = [
-      // dia, mes, titulo, local, descricao, modalidade
+
       ["08-13", "SET", TITULO_EVENTO_SEED, "Ginásio do Maracanãzinho - Rio de Janeiro", "Campeonato Sul-Americano de vôlei feminino 2026, confirmado pela CBV.", "quadra"],
       ["15-20", "SET", "Sul-Americano de Vôlei Masculino 2026", "Ginásio do Maracanãzinho - Rio de Janeiro", "Campeonato Sul-Americano de vôlei masculino 2026, confirmado pela CBV.", "quadra"],
     ];
@@ -232,12 +213,11 @@ async function inicializarBanco() {
     console.log("📅 Eventos antigos (vencidos) removidos; eventos reais do Sul-Americano 2026 inseridos.");
   }
 
-  // Aulas iniciais (vídeos reais e públicos, confirmados via busca — cobre Iniciante/Intermediário
-  // em quadra e praia por enquanto; Avançado e mais fundamentos entram numa próxima etapa)
+
   const { rows: rau } = await db.query("SELECT COUNT(*) as total FROM aulas");
   if (parseInt(rau[0].total) === 0) {
     const aulasIniciais = [
-      // titulo, descricao, nivel, fundamento, modalidade, url_video, ordem
+
       ["Fundamentos técnicos do voleibol", "Introdução aos principais fundamentos técnicos do vôlei de quadra.", "Iniciante", null, "quadra", "https://www.youtube.com/embed/3ey82LDiKbk", 1],
       ["Fundamentos básicos do voleibol", "Visão geral dos fundamentos básicos para quem está começando no vôlei de quadra.", "Iniciante", null, "quadra", "https://www.youtube.com/embed/ldy0v8fHqsg", 2],
       ["Como se joga voleibol", "Fundamentos do voleibol explicados na prática, para quem já tem noção básica do jogo.", "Intermediário", null, "quadra", "https://www.youtube.com/embed/6uLksQ3tY2M", 1],
@@ -256,15 +236,11 @@ async function inicializarBanco() {
     console.log("🎓 Aulas iniciais inseridas.");
   }
 
-  // Aulas por fundamento (vídeos reais confirmados via busca — Saque, Manchete, Toque,
-  // Levantamento, Bloqueio, Ataque). Não cobre todas as combinações: não foi encontrado
-  // nenhum vídeo real específico de Saque para vôlei de praia, então esse buraco fica em
-  // aberto de propósito em vez de inventar um vídeo.
+
   const MARCADOR_AULAS_FUNDAMENTO = "https://www.youtube.com/embed/u7qtV9HN7Fs";
   const { rows: raf } = await db.query("SELECT COUNT(*) as total FROM aulas WHERE url_video=$1", [MARCADOR_AULAS_FUNDAMENTO]);
   if (parseInt(raf[0].total) === 0) {
     const aulasFundamento = [
-      // titulo, descricao, nivel, fundamento, modalidade, url_video, ordem
 
       // ── QUADRA ──
       ["Saque por cima — passo a passo", "Aprenda o passo a passo do saque por cima, com dicas de postura e contato na bola.", "Iniciante", "Saque", "quadra", "https://www.youtube.com/embed/u7qtV9HN7Fs", 1],
@@ -315,19 +291,13 @@ async function inicializarBanco() {
   console.log("🗄️  Banco inicializado.");
 }
 
-// ─────────────────────────────────────────────────────────
-// IA — ATUALIZAÇÃO AUTOMÁTICA
-// ─────────────────────────────────────────────────────────
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 const rssParser = new Parser();
 const FEED_QUADRA_URL = `https://news.google.com/rss/search?q=${encodeURIComponent('vôlei de quadra OR superliga vôlei')}&hl=pt-BR&gl=BR&ceid=BR:pt-419`;
 const FEED_PRAIA_URL = `https://news.google.com/rss/search?q=${encodeURIComponent('vôlei de praia')}&hl=pt-BR&gl=BR&ceid=BR:pt-419`;
 const PALAVRAS_EVENTO = ["campeonato", "torneio", "copa", "superliga", "mundial", "olimp", "liga das na", "vnl", "sul-americano"];
 
-// Imagens de fallback reais (abertas e conferidas uma a uma no Unsplash) usadas quando não é
-// possível extrair a imagem de capa real do artigo da notícia. Um array por modalidade — a
-// escolha entre elas é determinística (por id), não aleatória, então a mesma notícia sempre
-// mostra a mesma imagem entre recarregamentos.
+
 const IMAGEM_FALLBACK = {
   quadra: [
     "https://images.unsplash.com/photo-1547347298-4074fc3086f0?w=800&q=80",
@@ -350,8 +320,6 @@ const IMAGEM_FALLBACK = {
   ],
 };
 
-// Escolhe determinísticamente uma imagem de fallback pela modalidade + id da notícia
-// (mesmo id sempre cai na mesma imagem; ids diferentes tendem a variar).
 function escolherImagemFallback(modalidade, id) {
   const lista = IMAGEM_FALLBACK[modalidade] || IMAGEM_FALLBACK.quadra;
   return lista[id % lista.length];
@@ -362,8 +330,6 @@ function tituloJaExiste(titulo, titulosExistentes) {
   return titulosExistentes.some(t => t.trim().toLowerCase() === alvo);
 }
 
-// Busca a imagem de capa real do artigo (og:image). Fetch simples + regex, sem lib pesada.
-// Retorna null em qualquer falha (link indisponível, timeout, sem og:image etc).
 async function extrairImagemCapa(url) {
   try {
     const res = await fetch(url, {
@@ -379,10 +345,7 @@ async function extrairImagemCapa(url) {
     if (!match) return null;
 
     const imagem = match[1];
-    // Links do Google News (news.google.com/rss/articles/...) não fazem redirect HTTP de
-    // verdade para o site da notícia — ficam numa página interstitial do próprio Google,
-    // cujo og:image é só o logo genérico do "Google News", não uma foto real do artigo.
-    // Detectamos isso pelo domínio da imagem e tratamos como se não tivesse sido encontrada.
+  
     const dominioImagem = new URL(imagem, url).hostname;
     if (/(^|\.)google(usercontent)?\.com$|\.gstatic\.com$/i.test(dominioImagem)) return null;
 
@@ -394,9 +357,6 @@ async function extrairImagemCapa(url) {
 
 const MESES_INDEX = { JAN: 0, FEV: 1, MAR: 2, ABR: 3, MAI: 4, JUN: 5, JUL: 6, AGO: 7, SET: 8, OUT: 9, NOV: 10, DEZ: 11 };
 
-// Calcula a data real (YYYY-MM-DD) do ÚLTIMO dia do evento a partir de "dia" (DD ou DD-DD)
-// e "mes" (sigla de 3 letras). Sem ano armazenado, assume o ano atual — ou o próximo, se
-// essa data já tiver passado — para que o evento não nasça "vencido" por acidente.
 function calcularDataEvento(diaStr, mesStr) {
   const mesIndex = MESES_INDEX[String(mesStr || "").toUpperCase()];
   if (mesIndex === undefined) return null;
@@ -546,14 +506,8 @@ async function atualizacaoAutomatica() {
   console.log("✅ Atualização automática concluída.\n");
 }
 
-// ─────────────────────────────────────────────────────────
-// AGENDAMENTO — todo dia às 8h
-// ─────────────────────────────────────────────────────────
 cron.schedule("0 8 * * *", atualizacaoAutomatica);
 
-// ─────────────────────────────────────────────────────────
-// ROTAS — NOTÍCIAS
-// ─────────────────────────────────────────────────────────
 app.get("/noticias", async (req, res) => {
   const { modalidade } = req.query;
   try {
@@ -575,9 +529,6 @@ app.post("/noticias", async (req, res) => {
   } catch (err) { res.status(500).json({ erro: err.message }); }
 });
 
-// ─────────────────────────────────────────────────────────
-// ROTAS — AGENDA
-// ─────────────────────────────────────────────────────────
 app.get("/agenda", async (req, res) => {
   const { modalidade } = req.query;
   try {
@@ -614,11 +565,6 @@ app.delete("/agenda/:id", async (req, res) => {
   } catch (err) { res.status(500).json({ erro: err.message }); }
 });
 
-// ─────────────────────────────────────────────────────────
-// ROTAS — AULAS E PROGRESSO
-// (progresso não é mais usada pelo front-end — nível agora é editável livremente
-// pelo usuário via PUT /usuarios/:id, sem avanço automático)
-// ─────────────────────────────────────────────────────────
 const ORDEM_NIVEIS = ["Iniciante", "Intermediário", "Avançado"];
 
 app.get("/aulas", async (req, res) => {
@@ -667,9 +613,6 @@ app.get("/progresso/:usuario_id", async (req, res) => {
   } catch (err) { res.status(500).json({ erro: err.message }); }
 });
 
-// ─────────────────────────────────────────────────────────
-// ROTAS — AUTH
-// ─────────────────────────────────────────────────────────
 app.post("/cadastro", async (req, res) => {
   const { nome, username, email, senha, nivel } = req.body;
   if (!nome || !username || !email || !senha)
@@ -769,9 +712,6 @@ app.get("/usuarios/publico/:username", async (req, res) => {
   } catch (err) { res.status(500).json({ erro: err.message }); }
 });
 
-// ─────────────────────────────────────────────────────────
-// ROTAS — FÓRUM
-// ─────────────────────────────────────────────────────────
 const FORUM_TEXTO_MAX = 500;
 
 app.get("/forum", async (req, res) => {
@@ -820,9 +760,6 @@ app.post("/forum", async (req, res) => {
   } catch (err) { res.status(500).json({ erro: err.message }); }
 });
 
-// ─────────────────────────────────────────────────────────
-// ROTAS — REDEFINIÇÃO DE SENHA
-// ─────────────────────────────────────────────────────────
 const RESET_TOKEN_VALIDADE_MIN = 30;
 
 app.post("/esqueci-senha", async (req, res) => {
@@ -899,9 +836,6 @@ app.post("/ia/atualizar", async (req, res) => {
   atualizacaoAutomatica(); // dispara sem await para não travar o response
 });
 
-// ─────────────────────────────────────────────────────────
-// START
-// ─────────────────────────────────────────────────────────
 inicializarBanco()
   .then(() => {
     app.listen(3000, () => console.log("🚀 Servidor em http://localhost:3000"));
