@@ -38,11 +38,6 @@
 <script>
 let modalidadeAtual = '';
 
-// Imagens de vôlei do Unsplash (conferidas visualmente uma a uma — o array anterior tinha
-// 4 de 6 fotos de outros esportes por engano: basquete, natação e badminton), uma lista por
-// modalidade. Só entram em jogo se a notícia não tiver "imagem" no banco (raro — o servidor
-// já preenche isso) ou se a imagem salva não carregar. Escolha determinística pelo id, igual
-// ao critério usado no servidor, pra mesma notícia sempre cair na mesma imagem.
 const IMAGENS_VOLEI = {
     quadra: [
         'https://images.unsplash.com/photo-1547347298-4074fc3086f0?w=600&q=80',
@@ -75,7 +70,6 @@ function formatarData(iso) {
     return new Date(iso).toLocaleDateString('pt-BR', {day:'2-digit', month:'short', year:'numeric'});
 }
 
-// Escapa texto vindo do banco antes de inserir no HTML (evita quebra de layout/injeção via título ou link)
 function escapeHtml(valor) {
     return String(valor ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 }
