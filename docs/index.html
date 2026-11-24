@@ -1,307 +1,640 @@
 <!DOCTYPE html>
 <html lang="pt-br">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-    <title>Vôlei Online - Documentação</title>
-
+    <title>Vôlei Online | Projeto de Extensão</title>
+    <meta name="description" content="Plataforma web para aprender, praticar e acompanhar o vôlei de quadra e de praia. Projeto de Extensão de Engenharia de Software da UniFil.">
     <style>
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
+        :root {
+            --bg: #0d1728;
+            --bg-deep: #08111f;
+            --card: #131f33;
+            --card-soft: #18263d;
+            --line: #243552;
+            --accent: #f5c400;
+            --text: #f5f5f5;
+            --muted: #aeb8c7;
         }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        html { scroll-behavior: smooth; }
 
         body {
-            font-family: Arial, Helvetica, sans-serif;
-            background-color: #0d1728;
-            color: #f5f5f5;
-            line-height: 1.6;
+            font-family: "Segoe UI", Arial, Helvetica, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.65;
         }
 
-        header {
-            background-color: #08111f;
-            border-bottom: 2px solid #f5c400;
-            padding: 35px 20px;
+        a { color: var(--accent); }
+
+        .nav {
+            position: sticky;
+            top: 0;
+            z-index: 10;
+            background: rgba(8, 17, 31, 0.94);
+            border-bottom: 1px solid var(--accent);
+            backdrop-filter: blur(6px);
+        }
+
+        .nav-inner {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 14px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 20px;
+        }
+
+        .nav strong { color: var(--accent); font-size: 18px; }
+
+        .nav ul {
+            list-style: none;
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .nav ul a {
+            color: var(--text);
+            text-decoration: none;
+            font-size: 14px;
+        }
+
+        .nav ul a:hover { color: var(--accent); }
+
+        .hero {
             text-align: center;
+            padding: 90px 20px 70px;
+            background:
+                radial-gradient(circle at 50% 0%, rgba(245, 196, 0, 0.14), transparent 60%),
+                var(--bg-deep);
+            border-bottom: 1px solid var(--line);
         }
 
-        header h1 {
-            color: #f5c400;
-            font-size: 38px;
-            margin-bottom: 8px;
+        .tag {
+            display: inline-block;
+            padding: 5px 14px;
+            border: 1px solid var(--accent);
+            border-radius: 999px;
+            color: var(--accent);
+            font-size: 13px;
+            margin-bottom: 20px;
         }
 
-        header p {
+        .hero h1 {
+            font-size: clamp(36px, 7vw, 64px);
+            color: var(--accent);
+            line-height: 1.1;
+            margin-bottom: 18px;
+        }
+
+        .hero p {
+            max-width: 680px;
+            margin: 0 auto 30px;
             color: #c9d2df;
+            font-size: 18px;
+        }
+
+        .botoes {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 12px 22px;
+            border-radius: 8px;
+            font-weight: 700;
+            text-decoration: none;
+            border: 2px solid var(--accent);
+        }
+
+        .btn-primario { background: var(--accent); color: var(--bg-deep); }
+        .btn-primario:hover { opacity: 0.88; }
+        .btn-contorno { color: var(--accent); }
+        .btn-contorno:hover { background: rgba(245, 196, 0, 0.12); }
+
+        .aviso {
+            margin-top: 22px;
+            font-size: 13px;
+            color: var(--muted);
         }
 
         main {
-            width: 90%;
             max-width: 1100px;
-            margin: 40px auto;
+            margin: 0 auto;
+            padding: 0 20px;
         }
 
-        section {
-            background-color: #131f33;
-            padding: 28px;
-            margin-bottom: 25px;
-            border-radius: 10px;
+        section { padding: 64px 0 8px; }
+
+        .eyebrow {
+            color: var(--accent);
+            font-size: 13px;
+            font-weight: 700;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            margin-bottom: 6px;
         }
 
-        h2 {
-            color: #f5c400;
-            margin-bottom: 15px;
+        h2 { font-size: 30px; margin-bottom: 14px; }
+
+        .intro { color: #c9d2df; max-width: 760px; margin-bottom: 26px; }
+
+        .numeros {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+            gap: 14px;
+            margin-top: 34px;
         }
 
-        h3 {
-            color: #f5c400;
-            margin-top: 25px;
-            margin-bottom: 10px;
+        .numero {
+            background: var(--card);
+            border: 1px solid var(--line);
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
         }
 
-        p {
-            margin-bottom: 12px;
+        .numero b { display: block; font-size: 32px; color: var(--accent); }
+        .numero span { color: var(--muted); font-size: 14px; }
+
+        .grade {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 16px;
         }
 
-        ul {
-            margin-left: 22px;
-            margin-top: 10px;
+        .cartao {
+            background: var(--card);
+            border: 1px solid var(--line);
+            border-radius: 12px;
+            padding: 22px;
         }
 
-        li {
-            margin-bottom: 8px;
+        .cartao h3 { color: var(--accent); font-size: 18px; margin-bottom: 8px; }
+        .cartao p { color: #c9d2df; font-size: 15px; }
+
+        .telas {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(460px, 1fr));
+            gap: 22px;
         }
+
+        .tela {
+            background: var(--card);
+            border: 1px solid var(--line);
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        .tela img { display: block; width: 100%; height: auto; aspect-ratio: 1400 / 670; object-fit: cover; }
+
+        .tela figcaption { padding: 16px 18px; }
+        .tela figcaption b { color: var(--accent); display: block; margin-bottom: 4px; }
+        .tela figcaption span { color: #c9d2df; font-size: 14px; }
+
+        .passos {
+            list-style: none;
+            counter-reset: passo;
+            display: grid;
+            gap: 14px;
+        }
+
+        .passos li {
+            counter-increment: passo;
+            background: var(--card);
+            border: 1px solid var(--line);
+            border-radius: 12px;
+            padding: 18px 20px 18px 70px;
+            position: relative;
+        }
+
+        .passos li::before {
+            content: counter(passo);
+            position: absolute;
+            left: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 34px;
+            height: 34px;
+            border-radius: 50%;
+            background: var(--accent);
+            color: var(--bg-deep);
+            font-weight: 800;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .passos b { color: var(--accent); }
+
+        .chips { display: flex; flex-wrap: wrap; gap: 10px; }
+
+        .chip {
+            background: var(--card-soft);
+            border: 1px solid var(--line);
+            border-radius: 999px;
+            padding: 8px 16px;
+            font-size: 14px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: var(--card);
+            border: 1px solid var(--line);
+            border-radius: 12px;
+            overflow: hidden;
+            font-size: 15px;
+        }
+
+        th, td { padding: 12px 16px; text-align: left; border-bottom: 1px solid var(--line); }
+        th { color: var(--accent); background: var(--card-soft); }
+        tr:last-child td { border-bottom: none; }
+        td:first-child { font-family: Consolas, monospace; color: var(--accent); white-space: nowrap; }
 
         .diagrama {
-            margin-top: 20px;
-            text-align: center;
+            background: var(--card);
+            border: 1px solid var(--line);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 22px;
         }
+
+        .diagrama h3 { color: var(--accent); margin-bottom: 4px; }
+        .diagrama p { color: var(--muted); font-size: 14px; margin-bottom: 14px; }
 
         .diagrama img {
+            display: block;
             width: 100%;
-            max-width: 950px;
+            max-width: 900px;
+            margin: 0 auto;
             border-radius: 8px;
-            background-color: white;
+            border: 1px solid var(--line);
         }
 
-        .legenda {
-            color: #aeb8c7;
-            font-size: 14px;
-            margin-top: 8px;
+        ul.lista { margin-left: 22px; color: #c9d2df; }
+        ul.lista li { margin-bottom: 8px; }
+
+        .duas {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
         }
 
-        .links a {
-            display: inline-block;
-            margin: 8px 10px 8px 0;
-            padding: 10px 18px;
-            background-color: #f5c400;
-            color: #08111f;
-            text-decoration: none;
-            font-weight: bold;
-            border-radius: 6px;
+        .equipe {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 16px;
         }
 
-        .links a:hover {
-            opacity: 0.85;
+        .pessoa {
+            background: var(--card);
+            border: 1px solid var(--line);
+            border-radius: 12px;
+            padding: 22px;
         }
+
+        .pessoa b { display: block; font-size: 18px; }
+        .pessoa span { color: var(--muted); font-size: 14px; }
 
         footer {
+            margin-top: 80px;
+            padding: 30px 20px;
             text-align: center;
-            padding: 25px;
-            background-color: #08111f;
-            color: #aeb8c7;
-            margin-top: 40px;
+            background: var(--bg-deep);
+            border-top: 1px solid var(--line);
+            color: var(--muted);
+            font-size: 14px;
         }
 
         @media (max-width: 700px) {
-            header h1 {
-                font-size: 30px;
-            }
-
-            main {
-                width: 95%;
-            }
-
-            section {
-                padding: 20px;
-            }
+            .nav ul { display: none; }
+            .hero { padding: 60px 20px 50px; }
+            h2 { font-size: 25px; }
+            .telas { grid-template-columns: 1fr; }
+            td:first-child { white-space: normal; }
         }
     </style>
 </head>
 
 <body>
 
-<header>
-    <h1>🏐 Vôlei Online</h1>
-    <p>Um site para aprender, praticar e acompanhar o esporte</p>
+<nav class="nav">
+    <div class="nav-inner">
+        <strong>🏐 Vôlei Online</strong>
+        <ul>
+            <li><a href="#telas">Telas</a></li>
+            <li><a href="#ia">Como a IA atua</a></li>
+            <li><a href="#tecnologias">Tecnologias</a></li>
+            <li><a href="#modelagem">Modelagem</a></li>
+            <li><a href="#aprendizados">Aprendizados</a></li>
+            <li><a href="#equipe">Equipe</a></li>
+        </ul>
+    </div>
+</nav>
+
+<header class="hero">
+    <span class="tag">Projeto de Extensão · Engenharia de Software · UniFil</span>
+    <h1>Vôlei Online</h1>
+    <p>
+        Uma plataforma web para aprender, praticar e acompanhar o vôlei de quadra e de praia,
+        com aulas por fundamento, notícias atualizadas automaticamente, agenda de eventos e
+        um fórum para a comunidade.
+    </p>
+    <div class="botoes">
+        <a class="btn btn-primario" href="https://volei-online.onrender.com" target="_blank" rel="noopener">Acessar o site</a>
+        <a class="btn btn-contorno" href="https://github.com/vitorepontes/Volei-Online" target="_blank" rel="noopener">Código no GitHub</a>
+    </div>
+    <p class="aviso">O site usa hospedagem gratuita: no primeiro acesso após um tempo parado, pode levar alguns segundos para carregar.</p>
 </header>
 
 <main>
 
-    <section>
-        <h2>Sobre o Projeto</h2>
-
-        <p>
-            O Vôlei Online é uma aplicação web desenvolvida como Projeto de Extensão
-            do curso de Engenharia de Software da UniFil.
+    <section id="sobre">
+        <p class="eyebrow">Sobre</p>
+        <h2>O projeto</h2>
+        <p class="intro">
+            O Vôlei Online reúne em um só lugar o que quem está começando no esporte costuma procurar
+            espalhado pela internet: vídeo-aulas organizadas por fundamento, notícias do vôlei,
+            calendário de campeonatos e um espaço para conversar com outras pessoas.
+            O conteúdo é separado entre vôlei de quadra e vôlei de praia.
         </p>
 
-        <p>
-            A proposta é reunir em um único ambiente conteúdos para pessoas que desejam
-            aprender, praticar ou acompanhar o vôlei, incluindo tanto o vôlei de quadra
-            quanto o vôlei de praia.
+        <div class="numeros">
+            <div class="numero"><b>2</b><span>modalidades: quadra e praia</span></div>
+            <div class="numero"><b>7</b><span>grupos de aulas por fundamento</span></div>
+            <div class="numero"><b>1×/dia</b><span>atualização automática de notícias</span></div>
+            <div class="numero"><b>17</b><span>rotas na API</span></div>
+        </div>
+    </section>
+
+    <section id="telas">
+        <p class="eyebrow">Interface</p>
+        <h2>Conheça as telas</h2>
+        <p class="intro">Capturas do site em produção.</p>
+
+        <div class="telas">
+            <figure class="tela">
+                <img src="imagens/home.png" alt="Página inicial do Vôlei Online" loading="lazy">
+                <figcaption>
+                    <b>Início</b>
+                    <span>Porta de entrada com acesso rápido a aulas, notícias, agenda e fórum.</span>
+                </figcaption>
+            </figure>
+
+            <figure class="tela">
+                <img src="imagens/login.png" alt="Tela de login e cadastro" loading="lazy">
+                <figcaption>
+                    <b>Login e cadastro</b>
+                    <span>Entrada e criação de conta na mesma tela, com opção de recuperar a senha por e-mail.</span>
+                </figcaption>
+            </figure>
+
+            <figure class="tela">
+                <img src="imagens/aulas.png" alt="Tela de aulas e fundamentos" loading="lazy">
+                <figcaption>
+                    <b>Aulas e fundamentos</b>
+                    <span>Alternância entre quadra e praia, com aulas em vídeo agrupadas por saque, manchete, toque, levantamento, bloqueio e ataque.</span>
+                </figcaption>
+            </figure>
+
+            <figure class="tela">
+                <img src="imagens/noticias.png" alt="Tela de notícias do vôlei" loading="lazy">
+                <figcaption>
+                    <b>Notícias</b>
+                    <span>Resumos de notícias reais com filtro por modalidade.</span>
+                </figcaption>
+            </figure>
+
+            <figure class="tela">
+                <img src="imagens/forum.png" alt="Tela do fórum da comunidade" loading="lazy">
+                <figcaption>
+                    <b>Fórum da comunidade</b>
+                    <span>Mensagens com respostas citadas, identificadas pelo nome de usuário público.</span>
+                </figcaption>
+            </figure>
+            <figure class="tela">
+                <img src="imagens/perfil.png" alt="Tela de perfil do usuário" loading="lazy">
+                <figcaption>
+                    <b>Perfil</b>
+                    <span>Nome de usuário público, bio, time, posição preferida e nível no vôlei, com alteração de senha e saída da conta.</span>
+                </figcaption>
+            </figure>
+        </div>
+    </section>
+
+    <section id="funcionalidades">
+        <p class="eyebrow">Recursos</p>
+        <h2>O que o sistema oferece</h2>
+
+        <div class="grade">
+            <div class="cartao">
+                <h3>Aulas por fundamento</h3>
+                <p>Vídeos organizados por técnica e por modalidade, para estudar um fundamento de cada vez.</p>
+            </div>
+            <div class="cartao">
+                <h3>Notícias com IA</h3>
+                <p>Notícias reais coletadas e resumidas automaticamente, separadas entre quadra e praia.</p>
+            </div>
+            <div class="cartao">
+                <h3>Agenda de eventos</h3>
+                <p>Calendário de campeonatos e eventos, com filtro por modalidade.</p>
+            </div>
+            <div class="cartao">
+                <h3>Cadastro e perfil</h3>
+                <p>Conta com nome de usuário público e perfil editável. O nome completo permanece privado.</p>
+            </div>
+            <div class="cartao">
+                <h3>Recuperação de senha</h3>
+                <p>Link enviado por e-mail, válido por 30 minutos e de uso único.</p>
+            </div>
+            <div class="cartao">
+                <h3>Fórum</h3>
+                <p>Espaço de conversa entre os usuários, com respostas a mensagens específicas.</p>
+            </div>
+        </div>
+    </section>
+
+    <section id="ia">
+        <p class="eyebrow">Diferencial</p>
+        <h2>Como a IA atualiza as notícias</h2>
+        <p class="intro">
+            A inteligência artificial não inventa conteúdo. Ela apenas resume notícias que já existem,
+            e cada item mantém a sua fonte original.
         </p>
+
+        <ol class="passos">
+            <li><b>Coleta.</b> O servidor lê o feed RSS do Google Notícias, com buscas separadas para vôlei de quadra e vôlei de praia.</li>
+            <li><b>Resumo.</b> Os itens reais são enviados à API Gemini, que devolve um resumo curto de cada um.</li>
+            <li><b>Armazenamento.</b> O resumo, a fonte e a modalidade são gravados no PostgreSQL (Neon).</li>
+            <li><b>Agendamento.</b> O processo roda todos os dias às 8h por meio do node-cron. Também pode ser disparado manualmente pela rota <code>POST /ia/atualizar</code>.</li>
+        </ol>
     </section>
 
+    <section id="tecnologias">
+        <p class="eyebrow">Stack</p>
+        <h2>Tecnologias utilizadas</h2>
 
-    <section>
-        <h2>Objetivo</h2>
-
-        <p>
-            O projeto busca facilitar o acesso a conteúdos relacionados ao vôlei,
-            reunindo aulas em vídeo, notícias, eventos e recursos de interação
-            entre usuários em uma única plataforma.
-        </p>
+        <div class="chips">
+            <span class="chip">HTML</span>
+            <span class="chip">CSS</span>
+            <span class="chip">JavaScript</span>
+            <span class="chip">Node.js</span>
+            <span class="chip">Express</span>
+            <span class="chip">PostgreSQL</span>
+            <span class="chip">Neon</span>
+            <span class="chip">bcrypt</span>
+            <span class="chip">node-cron</span>
+            <span class="chip">rss-parser</span>
+            <span class="chip">Google Gemini API</span>
+            <span class="chip">Google Notícias RSS</span>
+            <span class="chip">Resend</span>
+            <span class="chip">GitHub</span>
+            <span class="chip">GitHub Pages</span>
+            <span class="chip">Render</span>
+        </div>
     </section>
 
+    <section id="modelagem">
+        <p class="eyebrow">Dados</p>
+        <h2>Modelo de dados atual</h2>
+        <p class="intro">Tabelas em uso no banco PostgreSQL do sistema publicado.</p>
 
-    <section>
-        <h2>Principais Funcionalidades</h2>
-
-        <ul>
-            <li>Aulas em vídeo sobre fundamentos do vôlei;</li>
-            <li>Conteúdos organizados por nível de experiência;</li>
-            <li>Separação entre vôlei de quadra e vôlei de praia;</li>
-            <li>Notícias recentes relacionadas ao esporte;</li>
-            <li>Agenda de campeonatos e eventos;</li>
-            <li>Cadastro e login de usuários;</li>
-            <li>Perfil público e edição de perfil;</li>
-            <li>Recuperação de senha por e-mail;</li>
-            <li>Fórum para interação entre os usuários.</li>
-        </ul>
+        <table>
+            <thead>
+                <tr><th>Tabela</th><th>Função</th></tr>
+            </thead>
+            <tbody>
+                <tr><td>usuarios</td><td>Contas, nome de usuário público e dados de perfil</td></tr>
+                <tr><td>noticias</td><td>Notícias resumidas pela IA, com fonte e modalidade</td></tr>
+                <tr><td>agenda</td><td>Campeonatos e eventos, com data do evento</td></tr>
+                <tr><td>aulas</td><td>Vídeo-aulas por fundamento e modalidade</td></tr>
+                <tr><td>senha_resets</td><td>Tokens de recuperação de senha, com validade e uso único</td></tr>
+                <tr><td>forum_mensagens</td><td>Mensagens do fórum e respostas</td></tr>
+            </tbody>
+        </table>
     </section>
 
-
-    <section>
-        <h2>Tecnologias Utilizadas</h2>
-
-        <ul>
-            <li>HTML</li>
-            <li>CSS</li>
-            <li>JavaScript</li>
-            <li>Node.js</li>
-            <li>Express</li>
-            <li>PostgreSQL / Neon</li>
-            <li>Google Gemini API</li>
-            <li>Google Notícias RSS</li>
-            <li>Resend</li>
-            <li>GitHub</li>
-            <li>Render</li>
-        </ul>
-    </section>
-
-
-    <section>
-        <h2>Diagramas do Projeto</h2>
-
-        <p>
-            Durante as etapas de desenvolvimento foram criados diagramas para representar
-            os requisitos, a estrutura e a organização inicial do sistema.
+    <section id="diagramas">
+        <p class="eyebrow">Planejamento</p>
+        <h2>Diagramas da modelagem inicial</h2>
+        <p class="intro">
+            Estes diagramas foram feitos nas etapas iniciais do projeto. O sistema evoluiu depois deles,
+            e o modelo de dados acima mostra o estado atual.
         </p>
 
         <div class="diagrama">
-            <h3>Diagrama de Casos de Uso</h3>
-
-            <img
-                src="Caso de Uso Extensão.png"
-                alt="Diagrama de Casos de Uso do Vôlei Online"
-            >
-
-            <p class="legenda">
-                Representação dos usuários e das principais funcionalidades previstas para o sistema.
-            </p>
+            <h3>Casos de uso</h3>
+            <p>Usuário não logado, usuário logado e administrador, com as funcionalidades previstas para cada um.</p>
+            <img src="imagens/caso-de-uso.png" alt="Diagrama de casos de uso do Vôlei Online" loading="lazy">
         </div>
 
-
         <div class="diagrama">
-            <h3>Diagrama Entidade-Relacionamento (DER)</h3>
-
-            <img
-                src="DER.png"
-                alt="Diagrama Entidade-Relacionamento do Vôlei Online"
-            >
-
-            <p class="legenda">
-                Modelagem inicial das principais entidades e dados do sistema.
-            </p>
+            <h3>Entidade-Relacionamento (DER)</h3>
+            <p>Primeira modelagem das entidades usuários, notícias, aulas e eventos.</p>
+            <img src="imagens/der.png" alt="Diagrama entidade-relacionamento do Vôlei Online" loading="lazy">
         </div>
 
-
         <div class="diagrama">
-            <h3>Diagrama de Classes</h3>
-
-            <img
-                src="Diagrama de Classes.png"
-                alt="Diagrama de Classes do Vôlei Online"
-            >
-
-            <p class="legenda">
-                Representação das principais classes planejadas durante a etapa de modelagem.
-            </p>
+            <h3>Diagrama de classes</h3>
+            <p>Classes planejadas: conteúdo (aula e notícia), usuário, administrador e evento.</p>
+            <img src="imagens/diagrama-de-classes.png" alt="Diagrama de classes do Vôlei Online" loading="lazy">
         </div>
     </section>
 
+    <section id="aprendizados">
+        <p class="eyebrow">Processo</p>
+        <h2>Desafios e aprendizados</h2>
 
-    <section>
-        <h2>Projeto Online</h2>
+        <div class="duas">
+            <div class="cartao">
+                <h3>Desafios enfrentados</h3>
+                <ul class="lista">
+                    <li>O modelo de IA inicial foi descontinuado pela API, o que exigiu migrar para um modelo atual.</li>
+                    <li>A cota gratuita diária da IA acabou durante os testes, e a atualização passou a rodar só por agendamento diário ou acionamento manual.</li>
+                    <li>As imagens das notícias não tinham relação com o assunto, e foram substituídas por um conjunto de fotos de vôlei separado por modalidade.</li>
+                    <li>Um estilo de CSS sobrescrevia o atributo <code>hidden</code> e deixava elementos visíveis, o que foi corrigido com uma regra global.</li>
+                </ul>
+            </div>
 
-        <p>
-            O código-fonte e a aplicação podem ser acessados através dos links abaixo:
-        </p>
-
-        <div class="links">
-
-            <a
-                href="https://github.com/vitorepontes/Volei-Online"
-                target="_blank"
-            >
-                Repositório no GitHub
-            </a>
-
-            <a
-                href="https://volei-online.onrender.com"
-                target="_blank"
-            >
-                Acessar Aplicação
-            </a>
-
+            <div class="cartao">
+                <h3>O que aprendemos</h3>
+                <ul class="lista">
+                    <li>Publicar um sistema real: banco na nuvem, servidor hospedado e variáveis de ambiente protegidas.</li>
+                    <li>Integrar serviços externos: IA generativa, feed RSS e envio de e-mail.</li>
+                    <li>Usar IA como ferramenta de resumo apoiada em fontes reais, e não como gerador de informação.</li>
+                    <li>Documentar e versionar o projeto de forma que outra pessoa consiga executá-lo.</li>
+                </ul>
+            </div>
         </div>
     </section>
 
+    <section id="limitacoes">
+        <p class="eyebrow">Próximos passos</p>
+        <h2>Limitações conhecidas e evolução</h2>
 
-    <section>
-        <h2>Integrantes</h2>
+        <div class="duas">
+            <div class="cartao">
+                <h3>Limitações</h3>
+                <ul class="lista">
+                    <li>A restrição de acesso a aulas, perfil e fórum é feita no navegador, sem validação no servidor.</li>
+                    <li>A hospedagem gratuita entra em repouso após alguns minutos sem acessos.</li>
+                    <li>O envio de e-mails usa o remetente de testes do Resend.</li>
+                </ul>
+            </div>
 
-        <p>
-            Paulo Henrique Farias Lima<br>
-            Vitor Emanoel Pontes Jacinto
-        </p>
+            <div class="cartao">
+                <h3>Evoluções futuras</h3>
+                <ul class="lista">
+                    <li>Autenticação com sessão ou token validado no servidor.</li>
+                    <li>Mensagens privadas entre usuários, com opção de bloqueio.</li>
+                    <li>Domínio próprio para o envio de e-mails.</li>
+                    <li>Painel para cadastro de aulas e eventos.</li>
+                </ul>
+            </div>
+        </div>
+    </section>
 
-        <p>
-            Engenharia de Software — UniFil
-        </p>
+    <section id="links">
+        <p class="eyebrow">Links</p>
+        <h2>Acesse o projeto</h2>
+
+        <div class="botoes" style="justify-content:flex-start">
+            <a class="btn btn-primario" href="https://volei-online.onrender.com" target="_blank" rel="noopener">Site em produção</a>
+            <a class="btn btn-contorno" href="https://github.com/vitorepontes/Volei-Online" target="_blank" rel="noopener">Repositório no GitHub</a>
+            <a class="btn btn-contorno" href="https://github.com/vitorepontes/Volei-Online#readme" target="_blank" rel="noopener">Documentação e instruções de execução</a>
+        </div>
+    </section>
+
+    <section id="equipe">
+        <p class="eyebrow">Equipe</p>
+        <h2>Quem fez</h2>
+
+        <div class="equipe">
+            <div class="pessoa">
+                <b>Paulo Henrique Farias Lima</b>
+                <span>Engenharia de Software · UniFil</span>
+            </div>
+            <div class="pessoa">
+                <b>Vitor Emanoel Pontes Jacinto</b>
+                <span>Engenharia de Software · UniFil</span>
+            </div>
+        </div>
     </section>
 
 </main>
 
-
 <footer>
-    Vôlei Online — Projeto de Extensão | 2026
+    Vôlei Online · Projeto de Extensão · UniFil · 2026
 </footer>
 
 </body>
-
 </html>
